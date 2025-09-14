@@ -105,4 +105,13 @@ const login = async (req, res) => {
     console.log(error);
   }
 };
-export { register, login };
+
+const logout = async (req, res) => {
+  try {
+    res.status(200).json({ success: true, message: "Logged out successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Failed to Logged out" });
+  }
+};
+
+export { register, login, logout };
