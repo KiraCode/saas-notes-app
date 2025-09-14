@@ -16,12 +16,6 @@ const noteSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    tenant: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Tenant",
-      required: true,
-      trim: true,
-    },
   },
   { timestamps: true }
 );

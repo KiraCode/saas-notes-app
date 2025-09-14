@@ -4,7 +4,7 @@ import User from "../models/userModel.js";
 
 dotenv.config();
 
-const authenticateUser = async (requestAnimationFrame, resizeBy, next) => {
+const authenticateUser = async (req, res, next) => {
   const token = req.headers.authorization?.replace("Bearer ", "");
 
   if (!token) {
