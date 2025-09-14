@@ -2,7 +2,7 @@ import Tenant from "../models/tenantModel.js";
 
 const register = async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, slug, plan } = req.body;
     const loggedUser = req.user;
 
     if (!name) {
@@ -30,6 +30,8 @@ const register = async (req, res) => {
 
     const user = await Tenant.create({
       name,
+      slug,
+      plan,
     });
 
     res.status(201).json({
@@ -45,4 +47,44 @@ const register = async (req, res) => {
   }
 };
 
-export { register };
+const tenantSubscription = async (req, res) => {
+  try {
+    const { slug } = req.params;
+    const { plan } = req.body;
+    const user = req.user;
+
+    if (!user.id) {
+      return res.status(400).json({ message: "user id is required" });
+    }
+console.log(user.role);
+    if (user.role != "ADMIN") {
+      return res.status(400).json({
+        success: false,
+        message: "Only Admin can Update Subscription",
+      });
+    }
+
+    const updatePlan = await Tenant.findOneAndUpdate(
+      { slug: slug },
+      {
+        plan: plan,
+      },
+      { returnDocument: "after" }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Tenant SUbscription Updated Successfully",
+      task: updatePlan,
+    });
+  } catch (error) {
+    console.error("failed to update the task", error);
+
+    res.status(400).json({
+      success: false,
+      message: "failed to update the Subscription",
+    });
+  }
+};
+
+export { register, tenantSubscription };

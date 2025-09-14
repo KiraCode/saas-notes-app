@@ -1,4 +1,6 @@
 import Notes from "../models/notesModel.js";
+import Tenant from "../models/tenantModel.js";
+import User from "../models/userModel.js";
 
 const createNote = async (req, res) => {
   try {
@@ -9,16 +11,26 @@ const createNote = async (req, res) => {
       return res.status(400).json({ message: "Title not found" });
     }
 
-    const notesCount = await Notes.find({ createdBy: user.id }).length;
+    if (user.role != "MEMBER") {
+      return res.status(400).json({
+        success: false,
+        message: "Only MEMBER can create notes",
+      });
+    }
 
-    if (user.role === "MEMBER" && user.plan === "FREE" && notesCount >= 3) {
+    const tenantDetails = await User.findById(user.id).populate("tenant");
+    const plan = tenantDetails.tenant.plan;
+
+    const notesList = await Notes.find({ createdBy: user.id });
+
+    if (user.role === "MEMBER" && plan === "FREE" && notesList.length >= 3) {
       return res.status(403).json({
         success: false,
         message: "Note limit reached. Upgrade to PRO for unlimited notes.",
       });
     }
 
-    const newNote = await Notes.create({ title, content, createdBy });
+    const newNote = await Notes.create({ title, content, createdBy: user.id });
 
     res.status(201).json({
       success: true,
@@ -64,7 +76,12 @@ const updateNote = async (req, res) => {
     if (!id) {
       return res.status(400).json({ message: "Note is required" });
     }
-
+    if (user.role != "MEMBER") {
+      return res.status(400).json({
+        success: false,
+        message: "Only MEMBER can update notes",
+      });
+    }
     const updatedNote = await Notes.findByIdAndUpdate(
       { _id: id, createdBy: user.id },
       { title, content },
@@ -89,13 +106,18 @@ const updateNote = async (req, res) => {
 const deleteNote = async (req, res) => {
   try {
     const { id } = req.params;
-
+    const user = req.user;
     if (!id) {
       return res
         .status(400)
         .json({ success: false, message: "Note id is required" });
     }
-
+    if (user.role != "MEMBER") {
+      return res.status(400).json({
+        success: false,
+        message: "Only MEMBER can delete notes",
+      });
+    }
     const deletedNote = await Notes.findByIdAndDelete(id);
 
     res.status(200).json({

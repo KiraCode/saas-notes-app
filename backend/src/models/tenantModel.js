@@ -7,6 +7,16 @@ const tenantSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    slug: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    plan: {
+      type: String,
+      enum: ["FREE", "PRO"],
+      default: "FREE",
+    },
   },
   { timestamps: true }
 );
