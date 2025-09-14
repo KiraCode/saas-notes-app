@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 
 const register = async (req, res) => {
   try {
-    const { username, email, password, plan, role, tenant } = req.body;
+    const { username, email, password, role, tenant } = req.body;
     const loggedUser = req.user;
 
     if (!username || !email || !password) {
@@ -36,7 +36,6 @@ const register = async (req, res) => {
       username,
       email,
       password: hashedPassword,
-      plan: plan || "FREE",
       role: role || "MEMBER",
       tenant: tenant,
     });
@@ -106,6 +105,33 @@ const login = async (req, res) => {
   }
 };
 
+const updateUser = async (req, res) => {
+  const { role } = req.body;
+  const user = req.user;
+
+  if (!user.id) {
+    return res.status(400).json({ message: "user id required" });
+  }
+
+  if (user.role != "ADMIN") {
+    return res.status(400).json({
+      success: false,
+      message: "Only Admin can update Member",
+    });
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    user.id,
+    { role: role },
+    { returnDocument: "after" }
+  );
+
+  res.status(200).json({
+    success: true,
+    message: "User Updated Successfully",
+    task: updatedUser,
+  });
+};
 const logout = async (req, res) => {
   try {
     res.status(200).json({ success: true, message: "Logged out successfully" });

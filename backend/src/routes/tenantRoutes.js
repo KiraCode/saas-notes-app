@@ -1,8 +1,10 @@
 import express from "express";
-import { register } from "../controller/tenantController.js";
+import { register, tenantSubscription } from "../controller/tenantController.js";
+import authenticateUser from "../middleware/userMiddleware.js";
 
 const tenantRouter = express.Router();
 
-tenantRouter.post("/register", register);
+tenantRouter.post("/register", authenticateUser, register);
+tenantRouter.put("/:slug/upgrade", authenticateUser, tenantSubscription);
 
 export default tenantRouter;
