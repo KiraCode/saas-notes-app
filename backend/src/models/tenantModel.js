@@ -7,17 +7,6 @@ const tenantSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    clients: {
-      type: String,
-      required: true,
-      trim: true,
-      unique: true,
-    },
-    plan: {
-      type: String,
-      enum: ["FREE", "PRO"],
-      default: "FREE",
-    },
   },
   { timestamps: true }
 );
