@@ -65,6 +65,7 @@ const login = async (req, res) => {
     }
 
     const user = await User.findOne({ email });
+    console.log(email);
 
     if (!user) {
       return res.status(400).json({
@@ -106,7 +107,7 @@ const login = async (req, res) => {
 };
 
 const updateUser = async (req, res) => {
-  const { role } = req.body;
+  const { username, email, role } = req.body;
   const user = req.user;
 
   if (!user.id) {
@@ -120,9 +121,14 @@ const updateUser = async (req, res) => {
     });
   }
 
+  const updateData = {};
+  if (role) updateData.role = role;
+  if (username) updateData.username = username;
+  if (email) updateData.email = email;
+
   const updatedUser = await User.findByIdAndUpdate(
     user.id,
-    { role: role },
+    { $set: updateData },
     { returnDocument: "after" }
   );
 
@@ -132,6 +138,7 @@ const updateUser = async (req, res) => {
     task: updatedUser,
   });
 };
+
 const logout = async (req, res) => {
   try {
     res.status(200).json({ success: true, message: "Logged out successfully" });
@@ -140,4 +147,4 @@ const logout = async (req, res) => {
   }
 };
 
-export { register, login, logout };
+export { register, login, logout, updateUser };

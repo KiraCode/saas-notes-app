@@ -1,11 +1,14 @@
 import React from "react";
+// import Login from "./components/Login";
+import AuthProvider from "./context/authContext";
+import Register from "./components/Register";
 
 const App = () => {
   return (
-    <div>
-      {" "}
-      <h1 class="text-3xl font-bold underline text-blue-400">Hello world!</h1>
-    </div>
+    <AuthProvider>
+      <Register />
+    </AuthProvider>
+
   );
 };
 
