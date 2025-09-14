@@ -10,6 +10,11 @@ const userSchema = new mongoose.Schema(
       enum: ["ADMIN", "MEMBER"],
       default: "MEMBER",
     },
+    plan: {
+      type: String,
+      enum: ["FREE", "PRO"],
+      default: "FREE",
+    },
     tenant: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Tenant",

@@ -1,0 +1,108 @@
+import User from "../models/userModel.js";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+
+const register = async (req, res) => {
+  try {
+    const { username, email, password, plan, role, tenant } = req.body;
+    const loggedUser = req.user;
+
+    if (!username || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "username, email, password are required to register user",
+      });
+    }
+
+    const isEmailExist = await User.findOne({ email });
+
+    if (isEmailExist) {
+      return res.status(400).json({
+        success: false,
+        message: "Email already present, Please login",
+      });
+    }
+
+    if (loggedUser.role != "ADMIN") {
+      return res.status(400).json({
+        success: false,
+        message: "Only Admin can invite Member",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await User.create({
+      username,
+      email,
+      password: hashedPassword,
+      plan: plan || "FREE",
+      role: role || "MEMBER",
+      tenant: tenant,
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "User created Successfully",
+      user,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to Register user" });
+    console.log(error);
+  }
+};
+
+const login = async (req, res) => {
+  const { email, password } = req.body;
+
+  try {
+    if (!email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and Password are required to Login",
+      });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({
+        message: `Email and Password are required to login`,
+        success: false,
+      });
+    }
+
+    const isPasswordMatched = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordMatched) {
+      return res.status(401).json({
+        success: false,
+        message: "Inavlid Creadentials",
+      });
+    }
+
+    const accessToken = jwt.sign(
+      {
+        userId: user._id,
+        username: user.username,
+      },
+      process.env.JWT_SECRET_TOKEN,
+      {
+        expiresIn: "1h",
+      }
+    );
+
+    res
+      .status(200)
+      .json({ success: true, message: "logged in Successfully", accessToken });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to login",
+    });
+    console.log(error);
+  }
+};
+export { register, login };
