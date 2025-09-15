@@ -56,7 +56,7 @@ const tenantSubscription = async (req, res) => {
     if (!user.id) {
       return res.status(400).json({ message: "user id is required" });
     }
-console.log(user.role);
+    console.log(user.role);
     if (user.role != "ADMIN") {
       return res.status(400).json({
         success: false,
@@ -75,10 +75,10 @@ console.log(user.role);
     res.status(200).json({
       success: true,
       message: "Tenant SUbscription Updated Successfully",
-      task: updatePlan,
+      tenant: updatePlan,
     });
   } catch (error) {
-    console.error("failed to update the task", error);
+    console.error("failed to update the tenant", error);
 
     res.status(400).json({
       success: false,
@@ -87,4 +87,22 @@ console.log(user.role);
   }
 };
 
-export { register, tenantSubscription };
+const getTenants = async (req, res) => {
+  try {
+    const tenants = await Tenant.find({});
+    res.status(200).json({
+      success: true,
+      message: "Tenant fetched Successfully",
+      tenants: tenants,
+    });
+  } catch (error) {
+    console.error("failed to fetch tenants", error);
+
+    res.status(400).json({
+      success: false,
+      message: "failed to fetch tenants",
+    });
+  }
+};
+
+export { register, tenantSubscription, getTenants };

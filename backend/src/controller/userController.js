@@ -65,6 +65,7 @@ const login = async (req, res) => {
     }
 
     const user = await User.findOne({ email });
+    console.log(email);
 
     if (!user) {
       return res.status(400).json({
@@ -86,6 +87,7 @@ const login = async (req, res) => {
       {
         userId: user._id,
         username: user.username,
+        role: user.role,
       },
       process.env.JWT_SECRET_TOKEN,
       {
@@ -105,9 +107,32 @@ const login = async (req, res) => {
   }
 };
 
-const updateUser = async (req, res) => {
-  const { role } = req.body;
+const getUsers = async (req, res) => {
   const user = req.user;
+  const { id } = req.params;
+
+  if (user.role != "ADMIN") {
+    return res.status(400).json({
+      success: false,
+      message: "Only Admin can invite Member",
+    });
+  }
+
+  const loggedUser = await User.findById(id);
+  const tenantId = loggedUser.tenant;
+  const userList = await User.find({ tenant: tenantId });
+
+  res.status(201).json({
+    success: true,
+    message: "Fetched Users list",
+    userList,
+  });
+};
+
+const updateUser = async (req, res) => {
+  const { username, email, role } = req.body;
+  const user = req.user;
+  const id = req.params;
 
   if (!user.id) {
     return res.status(400).json({ message: "user id required" });
@@ -120,9 +145,14 @@ const updateUser = async (req, res) => {
     });
   }
 
+  const updateData = {};
+  if (role) updateData.role = role;
+  if (username) updateData.username = username;
+  if (email) updateData.email = email;
+
   const updatedUser = await User.findByIdAndUpdate(
-    user.id,
-    { role: role },
+    id,
+    { $set: updateData },
     { returnDocument: "after" }
   );
 
@@ -132,6 +162,7 @@ const updateUser = async (req, res) => {
     task: updatedUser,
   });
 };
+
 const logout = async (req, res) => {
   try {
     res.status(200).json({ success: true, message: "Logged out successfully" });
@@ -140,4 +171,4 @@ const logout = async (req, res) => {
   }
 };
 
-export { register, login, logout };
+export { register, login, logout, updateUser, getUsers };
