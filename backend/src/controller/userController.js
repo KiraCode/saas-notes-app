@@ -87,6 +87,7 @@ const login = async (req, res) => {
       {
         userId: user._id,
         username: user.username,
+        role: user.role,
       },
       process.env.JWT_SECRET_TOKEN,
       {
@@ -106,9 +107,32 @@ const login = async (req, res) => {
   }
 };
 
+const getUsers = async (req, res) => {
+  const user = req.user;
+  const { id } = req.params;
+
+  if (user.role != "ADMIN") {
+    return res.status(400).json({
+      success: false,
+      message: "Only Admin can invite Member",
+    });
+  }
+
+  const loggedUser = await User.findById(id);
+  const tenantId = loggedUser.tenant;
+  const userList = await User.find({ tenant: tenantId });
+
+  res.status(201).json({
+    success: true,
+    message: "Fetched Users list",
+    userList,
+  });
+};
+
 const updateUser = async (req, res) => {
   const { username, email, role } = req.body;
   const user = req.user;
+  const id = req.params;
 
   if (!user.id) {
     return res.status(400).json({ message: "user id required" });
@@ -127,7 +151,7 @@ const updateUser = async (req, res) => {
   if (email) updateData.email = email;
 
   const updatedUser = await User.findByIdAndUpdate(
-    user.id,
+    id,
     { $set: updateData },
     { returnDocument: "after" }
   );
@@ -147,4 +171,4 @@ const logout = async (req, res) => {
   }
 };
 
-export { register, login, logout, updateUser };
+export { register, login, logout, updateUser, getUsers };

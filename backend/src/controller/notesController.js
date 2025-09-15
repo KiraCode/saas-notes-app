@@ -49,8 +49,7 @@ const createNote = async (req, res) => {
 
 const getNotes = async (req, res) => {
   try {
-    const userId = req.user.id;
-
+    const userId = req.params;
     const notes = await Notes.find({ createdBy: userId });
 
     res.status(200).json({

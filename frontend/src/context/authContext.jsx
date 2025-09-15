@@ -4,24 +4,42 @@ import { jwtDecode } from "jwt-decode";
 const AuthContext = createContext();
 
 export default function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState({});
 
   const baseUrl = import.meta.env.VITE_APP_API_BASE_URL;
 
-  const register = async (username, email, password, role, tenant) => {
+  const register = async (username, email, password, role, tenantId) => {
     try {
       const endpoint = "/users/register";
       const url = `${baseUrl}${endpoint}`;
       console.log(url);
-
+      const accessToken = localStorage.getItem("accessToken");
       const requestBody = JSON.stringify({
         username: username,
         email: email,
         password: password,
         role: role,
-        tenant: tenant,
+        tenant: tenantId,
       });
-    } catch (error) {}
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: requestBody,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Error Response", errorText);
+        throw new Error(`Http Error ${response.status}:${errorText}`);
+      }
+      const jsonData = await response.json();
+    } catch (error) {
+      console.error("Login Failed...❌");
+    }
   };
 
   const login = async (email, password) => {
@@ -49,7 +67,10 @@ export default function AuthProvider({ children }) {
       localStorage.setItem("accessToken", accessToken);
 
       const decodedToken = jwtDecode(accessToken);
+      console.log(decodedToken, "token");
+
       setUser(decodedToken);
+      return true;
     } catch (error) {
       console.error("Login Failed...❌");
     }
@@ -60,7 +81,7 @@ export default function AuthProvider({ children }) {
     setUser(null);
   };
   return (
-    <AuthContext.Provider value={{ register, login, logout }}>
+    <AuthContext.Provider value={{ register, login, logout, user }}>
       {children}
     </AuthContext.Provider>
   );
